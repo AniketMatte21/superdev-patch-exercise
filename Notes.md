@@ -90,6 +90,13 @@ These are not critical bugs, but they would improve the maintainability and conf
 
 Database-level pagination
 
+
+### 6. The Biggest Remaining Risk
+
+Biggest remaining risk: In-memory pagination
+
+The backend currently retrieves all matching tasks from the database and then creates the requested page using subList() in application memory. As the number of tasks grows, this can increase database response size, memory consumption, and response time. Database-level pagination using Pageable/Page would make the endpoint more scalable.
+
 The current implementation fetches all matching tasks from the database and performs pagination in application memory. I considered moving pagination to the database using Spring Data Pageable, but I chose not to change it because it would require a broader repository/controller change and was outside the highest-priority issues I found within the exercise's timebox.
 
 For the current task volume this may be acceptable, but it should be revisited if the dataset grows significantly.
