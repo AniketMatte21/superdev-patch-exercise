@@ -1,54 +1,85 @@
-Project Setup:
-Setup Frontend in VS code, and ran on localhost:5173
-Setup backend in Intellij Idea, and ran on localhost:8080
+## Project Setup
 
-Bugs/Problems found:
+* Set up the frontend in VS Code and ran it on `localhost:5173`.
+* Set up the backend in IntelliJ IDEA and ran it on `localhost:8080`.
 
-1) The major bug in my opinion found was the search filter
-   --> The search supposed to be filtered by archieved=FALSE, by "term" in title/description and by STATUS(drop down options)
-   --> But the problem was in the Spring Boot native query in TaskRepository.java file from line number 14 to 17.
+## Bugs / Problems Found
 
-   ##Root Cause:
-     --> In SQL AND precadance is higher than OR, the second condition i.e title/description was spilt that we didn't wanted.
+### 1. Search Filter Issue
 
-   ##Fixing:
-     --> Added paranthesis and merged title and description in single condition, so the search query will correctly works with title/description and as well as status.
+The major issue I found was with the search filter.
 
-   ## AI tool used:
-     --> Chatgpt: for understanding the incorrect query and right approach to these implementation.
+The search was supposed to filter tasks based on:
 
-3) The second bug I found was the delay in the search while querying.
+* `archived = FALSE`
+* The search `term` in the task title or description
+* `STATUS` selected from the dropdown
 
-    ##Root cause:
-     --> The thread implmentation was added in TaskController.java file that made each query by some delays, That looks unwanted.
-     --> The shorter query takes long delay while the longer will take shorter delay.
-     --> Also these affects the unwanted server threads occupied
-     --> Throughput problem
+However, there was an issue in the native SQL query in `TaskRepository.java` (around lines 14–17).
 
-   ## fixing:
-     --> Removed the thread code to fix the user search exp, to solve the throughput problem
+**Root Cause:**
 
-   ## AI tool used:
-     --> Chatgpt: used to find whether any other implmentation works. But suggested to remove.
+The query was not grouping the `title` and `description` conditions properly. Since SQL gives higher precedence to `AND` than `OR`, the query logic was not working as intended. As a result, some tasks that did not match the other filters could still appear in the search results.
 
-4) Found the problem in React Application
+**Fix:**
 
-     --> In filename: useTasks.js, line number 7, the useState hook loading was initialized with false.
-     --> It was set true in useEffect() function, but then the user remains stuck on loading state only.
+I added parentheses around the title/description conditions and grouped them into a single condition. This ensured that the search term is checked against either the title or description while still applying the `archived` and `status` filters correctly.
 
-     ## Root Cause:
-     --> setLoading(false) was never set even after error.
+**AI Tool Used:**
 
-     ## fixing:
-     --> added finally block and set setLoading(true)
+I used ChatGPT to understand why the existing query was producing incorrect results and to understand the correct way to structure the SQL conditions.
 
-5) Small improvements like .env could be add for passing the URL, also can add Lombok dependency in Task.java file.
+---
 
+### 2. Unnecessary Delay in Search
 
+The second issue I found was a noticeable delay whenever a search query was performed.
 
-   
+**Root Cause:**
 
-   
+There was a `Thread.sleep()` implementation in `TaskController.java` that intentionally added a delay to each query.
 
+Interestingly, shorter queries were taking longer than longer queries because the delay was calculated based on the query length. This was unnecessary for the actual application and also caused server threads to remain occupied while waiting.
 
+This could negatively affect the application's throughput, especially when multiple users are making requests at the same time.
 
+**Fix:**
+
+I removed the unnecessary thread/sleep implementation so that search requests are processed normally without an artificial delay.
+
+This improves the user experience and avoids unnecessarily blocking server threads.
+
+**AI Tool Used:**
+
+I used ChatGPT to understand the purpose and impact of the existing implementation and to explore whether there was a better approach. Based on the analysis, removing the artificial delay was the appropriate solution for the current application.
+
+---
+
+### 3. Loading State Issue in React
+
+I also found an issue with the loading state in the React application, specifically in `useTasks.js`.
+
+The `loading` state was initially set to `false` and was changed to `true` inside `useEffect()` when fetching tasks.
+
+**Root Cause:**
+
+The problem was that `setLoading(false)` was not being called after the API request completed, especially when an error occurred. Because of this, the application could remain stuck in the loading state.
+
+**Fix:**
+
+I added a `finally` block to the API request and set:
+
+`setLoading(false)`
+
+This ensures that the loading state is reset whether the API request succeeds or fails.
+
+---
+
+### 4. Small Improvements
+
+I also identified a few areas where the project could be improved further:
+
+* Move the backend API URL into a `.env` file instead of keeping it directly in the frontend code. This would make configuration easier across different environments.
+* Lombok could be added to the `Task.java` entity to reduce boilerplate code such as getters, setters, constructors, and other repetitive methods.
+
+These are not critical bugs, but they would improve the maintainability and configuration of the project.
