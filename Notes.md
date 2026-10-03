@@ -83,3 +83,13 @@ I also identified a few areas where the project could be improved further:
 * Lombok could be added to the `Task.java` entity to reduce boilerplate code such as getters, setters, constructors, and other repetitive methods.
 
 These are not critical bugs, but they would improve the maintainability and configuration of the project.
+
+
+
+### 5. What I chose not to change
+
+Database-level pagination
+
+The current implementation fetches all matching tasks from the database and performs pagination in application memory. I considered moving pagination to the database using Spring Data Pageable, but I chose not to change it because it would require a broader repository/controller change and was outside the highest-priority issues I found within the exercise's timebox.
+
+For the current task volume this may be acceptable, but it should be revisited if the dataset grows significantly.
